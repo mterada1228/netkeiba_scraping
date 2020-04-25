@@ -7,8 +7,26 @@
 
 import scrapy
 
+class race(scrapy.Item):
 
-class NetkeibaScrapingItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    """ レース情報  """
+
+    rece_cource = scrapy.Field()
+    round = scrapy.Field()
+    race_name = scrapy.Field()
+    grade = scrapy.Field()
+    start_time = scrapy.Field()
+    cource_type = scrapy.Field()
+    distance = scrapy.Field()
+    turn = scrapy.Field()
+    side = scrapy.Field()
+    holding_times = scrapy.Field()
+    days = scrapy.Field()
+    regulation1 = scrapy.Field()
+    regulation2 = scrapy.Field()
+    special = scrapy.Field()
+    prize1 = scrapy.Field()
+    prize2 = scrapy.Field()
+    prize3 = scrapy.Field()
+    prize4 = scrapy.Field()
+    prize5 = scrapy.Field()
