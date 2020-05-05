@@ -7,11 +7,11 @@
 
 import scrapy
 
-class race(scrapy.Item):
+class Race(scrapy.Item):
 
     """ レース情報  """
 
-    rece_cource = scrapy.Field()
+    race_cource = scrapy.Field()
     round = scrapy.Field()
     race_name = scrapy.Field()
     grade = scrapy.Field()
@@ -20,11 +20,11 @@ class race(scrapy.Item):
     distance = scrapy.Field()
     turn = scrapy.Field()
     side = scrapy.Field()
-    holding_times = scrapy.Field()
     days = scrapy.Field()
     regulation1 = scrapy.Field()
     regulation2 = scrapy.Field()
-    special = scrapy.Field()
+    regulation3 = scrapy.Field()
+    regulation4 = scrapy.Field()
     prize1 = scrapy.Field()
     prize2 = scrapy.Field()
     prize3 = scrapy.Field()
