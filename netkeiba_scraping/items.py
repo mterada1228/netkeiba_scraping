@@ -11,6 +11,8 @@ class Race(scrapy.Item):
 
     """ レース情報  """
 
+    race_id = scrapy.Field()
+    race_date = scrapy.Field()
     race_cource = scrapy.Field()
     round = scrapy.Field()
     race_name = scrapy.Field()
@@ -30,3 +32,24 @@ class Race(scrapy.Item):
     prize3 = scrapy.Field()
     prize4 = scrapy.Field()
     prize5 = scrapy.Field()
+
+class Hose(scrapy.Item):
+
+    """ 競走馬-レース情報 """
+
+    hose_id = scrapy.Field()
+    race_id = scrapy.Field()
+    gate_num = scrapy.Field()
+    hose_num = scrapy.Field()
+    odds = scrapy.Field()
+    popularity = scrapy.Field()
+    rank = scrapy.Field()
+    jockey = scrapy.Field()
+    burden_weight = scrapy.Field()
+    time = scrapy.Field()
+    time_diff = scrapy.Field()
+    passing_order = scrapy.Field()
+    last_3f = scrapy.Field()
+    hose_weight = scrapy.Field()
+    hose_weight_diff = scrapy.Field()
+    get_prize = scrapy.Field()

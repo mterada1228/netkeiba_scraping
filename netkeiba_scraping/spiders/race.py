@@ -51,10 +51,11 @@ class RaceSpider(scrapy.Spider):
         prizes = re.findall(r'\d+', RaceData02[11])
         
         item = Race()
+        item['race_id'] = re.search(r'race_id=(\d+)', response.url).group(1)
+        item['race_date'] = response.css('dd.Active').xpath('string()').get()
         item['race_cource'] = RaceData02[2]
         item['round'] = response.css('span.RaceNum')[0].xpath('string()').get()
         item['race_name'] = response.css('div.RaceName').xpath('string()').get().strip()
-        item['grade'] = re.search(r'class=.*\s(\w+)', response.css('div.RaceName > span.Icon_GradeType').get()).group(1)
         item['distance'] = re.search(r'(\d+)m', RaceData01).group(1)
         item['turn'] = re.search(r'\((\D+)\)', RaceData01).group(1).split(' ')[0]
         item['days'] = RaceData02[3]
@@ -67,6 +68,12 @@ class RaceSpider(scrapy.Spider):
         item['prize3'] = prizes[2]
         item['prize4'] = prizes[3]
         item['prize5'] = prizes[4]
+
+        try:
+            item['grade'] = re.search(r'class=.*\s(\w+)', response.css('div.RaceName > span.Icon_GradeType').get()).group(1)
+        except TypeError:
+            # grade競争以外はエラーとなるので、こちらを使用
+            item['grade'] = ''
 
         try:
             item['side'] = re.search(r'\((\D+)\)', RaceData01).group(1).split(' ')[1]
@@ -84,7 +91,7 @@ class RaceSpider(scrapy.Spider):
             item['cource_type'] = re.search(r'/\s(\D*)(\d*)', RaceData01).group(1)
         except AttributeError:
             # 発走時間が未定の場合はエラーとなるので、こちらを使用
-            re.search(r'\s(\D+)', RaceData01).group(1)
+            item['cource_type'] = re.search(r'\s(\D+)', RaceData01).group(1)
 
         yield item
         
