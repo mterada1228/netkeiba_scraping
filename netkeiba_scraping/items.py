@@ -33,6 +33,20 @@ class Race(scrapy.Item):
     prize4 = scrapy.Field()
     prize5 = scrapy.Field()
 
+class RaceResult(scrapy.Item):
+
+    """ レース結果 """
+    
+    id = scrapy.Field()
+    name = scrapy.Field()
+    date = scrapy.Field()
+    condition = scrapy.Field()
+    entire_rap = scrapy.Field()
+    ave_1F = scrapy.Field()
+    first_half_ave_3F = scrapy.Field()
+    last_half_ave_3F = scrapy.Field()
+    RPCI = scrapy.Field()
+
 class Hose(scrapy.Item):
 
     """ 競走馬-レース情報 """
