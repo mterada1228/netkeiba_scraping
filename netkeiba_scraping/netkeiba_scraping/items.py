@@ -67,3 +67,10 @@ class HoseRaceResult(scrapy.Item):
     hose_weight = scrapy.Field()
     hose_weight_diff = scrapy.Field()
     get_prize = scrapy.Field()
+
+class Hose(scrapy.Item):
+
+    """ 競走馬基本情報 """
+
+    hose_id = scrapy.Field()
+    name = scrapy.Field()

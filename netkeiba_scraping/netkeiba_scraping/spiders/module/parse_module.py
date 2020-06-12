@@ -8,7 +8,7 @@
 import scrapy
 import re
 from urllib.parse import urljoin
-from netkeiba_scraping.items import RaceResult, HoseRaceResult
+from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose
 from numpy import average
 
 class ParseModuleSpider(scrapy.Spider):
@@ -46,6 +46,7 @@ class ParseModuleSpider(scrapy.Spider):
     def parse_race_result_by_hose(self, hose_id, row):
 
         """ 各馬成績を取得する """
+
         race_arr = row.css('td').xpath('string()').getall()
         item = HoseRaceResult()
         item['hose_id'] = hose_id
@@ -70,5 +71,15 @@ class ParseModuleSpider(scrapy.Spider):
             # 空白の場合エラーとなるのでこちらを使用
             item['hose_weight'] = ''
             item['hose_weight_diff'] = ''
+
+        return item
+
+    def parse_hose(self, hose_id, response):
+
+        """ 競走馬基本データを取得する """
+
+        item = Hose()
+        item['hose_id'] = hose_id
+        item['name'] = response.css('div.horse_title > h1').xpath('string()').get().strip()
 
         return item

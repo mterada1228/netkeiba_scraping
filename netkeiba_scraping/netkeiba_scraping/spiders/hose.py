@@ -19,10 +19,11 @@ class HoseSpider(scrapy.Spider):
 
     def parse(self, response):
 
-        """ 各レース結果ページのリンクをたどる """
-
         hose_id = re.search(r'horse/(\d+)', response.url).group(1)
         table_rows = response.css('table.db_h_race_results > tbody > tr')
+        
+        # 競走馬基本データを取得する
+        yield ParseModuleSpider.parse_hose(self, hose_id, response)
 
         # 各馬成績を取得する
         for race in table_rows:

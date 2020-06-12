@@ -6,8 +6,7 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 import MySQLdb
-from netkeiba_scraping.items import RaceResult
-from netkeiba_scraping.items import HoseRaceResult
+from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose
 
 class NetkeibaScrapingPipeline(object):
     def process_item(self, item, spider):
@@ -75,6 +74,15 @@ class SaveToMySQLPipeline:
             )
         """)
 
+        # 競走馬基本情報テーブル
+        self.c.execute("""
+            CREATE TABLE IF NOT EXISTS `hose` ( \
+                `hose_id` VARCHAR(10) NOT NULL, \
+                `name` VARCHAR(20) NOT NULL, \
+                PRIMARY KEY(`hose_id`)
+            )
+        """)
+
         self .conn.commit()
 
     def close_spider(self, spider):
@@ -98,6 +106,12 @@ class SaveToMySQLPipeline:
             self.c.execute('INSERT IGNORE INTO `hose_race_result` \
                             (`hose_id`,`race_id`,`gate_num`,`hose_num`,`odds`,`popularity`,`rank`,`jockey`,`burden_weight`,`time`,`time_diff`,`passing_order`,`last_3f`,`hose_weight`,`hose_weight_diff`,`get_prize`) \
                             VALUES (%(hose_id)s,%(race_id)s,%(gate_num)s,%(hose_num)s,%(odds)s,%(popularity)s,%(rank)s,%(jockey)s,%(burden_weight)s,%(time)s,%(time_diff)s,%(passing_order)s,%(last_3f)s,%(hose_weight)s,%(hose_weight_diff)s,%(get_prize)s)', dict(item))
+
+        # hose table への保存
+        if isinstance(item, Hose):
+            self.c.execute('INSERT IGNORE INTO `hose` \
+                            (`hose_id`, `name`) \
+                            VALUES (%(hose_id)s, %(name)s)', dict(item))
 
         self.conn.commit()
 
