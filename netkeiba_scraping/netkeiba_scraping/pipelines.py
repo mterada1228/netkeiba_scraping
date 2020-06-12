@@ -6,7 +6,7 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 import MySQLdb
-from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose
+from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose, Race
 
 class NetkeibaScrapingPipeline(object):
     def process_item(self, item, spider):
@@ -83,6 +83,34 @@ class SaveToMySQLPipeline:
             )
         """)
 
+        # 出馬表テーブル
+        self.c.execute("""
+            CREATE TABLE IF NOT EXISTS `race` ( \
+                `race_id` VARCHAR(10) NOT NULL, \
+                `race_date` VARCHAR(10) NOT NULL, \
+                `race_cource` VARCHAR(10) NOT NULL, \
+                `round` VARCHAR(4) NOT NULL, \
+                `race_name` VARCHAR(50) NOT NULL, \
+                `grade` VARCHAR(20) NOT NULL, \
+                `start_time` VARCHAR(6) NOT NULL, \
+                `cource_type` VARCHAR(3) NOT NULL, \
+                `distance` VARCHAR(5) NOT NULL, \
+                `turn` VARCHAR(2) NOT NULL, \
+                `side` VARCHAR(5) NOT NULL, \
+                `days` VARCHAR(6) NOT NULL, \
+                `regulation1` VARCHAR(20) NOT NULL, \
+                `regulation2` VARCHAR(20) NOT NULL, \
+                `regulation3` VARCHAR(20) NOT NULL, \
+                `regulation4` VARCHAR(20) NOT NULL, \
+                `prize1` VARCHAR(8) NOT NULL, \
+                `prize2` VARCHAR(8) NOT NULL, \
+                `prize3` VARCHAR(8) NOT NULL, \
+                `prize4` VARCHAR(8) NOT NULL, \
+                `prize5` VARCHAR(8) NOT NULL, \
+                PRIMARY KEY(`race_id`)
+            )
+        """)
+    
         self .conn.commit()
 
     def close_spider(self, spider):
@@ -113,6 +141,12 @@ class SaveToMySQLPipeline:
                             (`hose_id`, `name`) \
                             VALUES (%(hose_id)s, %(name)s)', dict(item))
 
+        # race table への保存
+        if isinstance(item, Race):
+            self.c.execute('INSERT IGNORE INTO `race` \
+                            (`race_id`, `race_date`, `race_cource`, `round`, `race_name`, `grade`, `start_time`, `cource_type`, `distance`, `turn`, `side`, `days`,`regulation1`, `regulation2` ,`regulation3`, `regulation4`, `prize1`, `prize2`, `prize3`, `prize4`, `prize5`) \
+                            VALUES (%(race_id)s, %(race_date)s, %(race_cource)s, %(round)s, %(race_name)s, %(grade)s, %(start_time)s, %(cource_type)s, %(distance)s, %(turn)s, %(side)s, %(days)s,%(regulation1)s, %(regulation2)s ,%(regulation3)s, %(regulation4)s, %(prize1)s, %(prize2)s, %(prize3)s, %(prize4)s, %(prize5)s)', dict(item))
+                             
         self.conn.commit()
 
         return item

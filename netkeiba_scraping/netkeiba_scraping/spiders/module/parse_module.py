@@ -8,7 +8,7 @@
 import scrapy
 import re
 from urllib.parse import urljoin
-from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose
+from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose, Race
 from numpy import average
 
 class ParseModuleSpider(scrapy.Spider):
@@ -81,5 +81,60 @@ class ParseModuleSpider(scrapy.Spider):
         item = Hose()
         item['hose_id'] = hose_id
         item['name'] = response.css('div.horse_title > h1').xpath('string()').get().strip()
+
+        return item
+
+    def parse_race(self, response):
+
+        """ 出馬表基本データを取得する """
+
+        # 例) 15:40発走 / 芝1600m (左)
+        RaceData01 = response.css('div.RaceData01').xpath('string()').get().split('\n')[1]
+        # 例) ['', '2回', '東京', '6日目', 'サラ系３歳', 'オープン', '\xa0\xa0\xa0\xa0\xa0', '(国際) 牡・牝(指)', '定量', '22頭', '', '本賞金:10500,4200,2600,1600,1050万円', '']
+        RaceData02 = response.css('div.RaceData02').xpath('string()').get().split('\n')
+        prizes = re.findall(r'\d+', RaceData02[11])
+        
+        item = Race()
+        item['race_id'] = re.search(r'race_id=(\d+)', response.url).group(1)
+        item['race_date'] = response.css('dd.Active').xpath('string()').get()
+        item['race_cource'] = RaceData02[2]
+        item['round'] = response.css('span.RaceNum')[0].xpath('string()').get()
+        item['race_name'] = response.css('div.RaceName').xpath('string()').get().strip()
+        item['distance'] = re.search(r'(\d+)m', RaceData01).group(1)
+        item['turn'] = re.search(r'\((\D+)\)', RaceData01).group(1).split(' ')[0]
+        item['days'] = RaceData02[3]
+        item['regulation1'] = RaceData02[4]
+        item['regulation2'] = RaceData02[5]
+        item['regulation3'] = RaceData02[7]
+        item['regulation4'] = RaceData02[8]
+        item['prize1'] = prizes[0]
+        item['prize2'] = prizes[1]
+        item['prize3'] = prizes[2]
+        item['prize4'] = prizes[3]
+        item['prize5'] = prizes[4]
+
+        try:
+            item['grade'] = re.search(r'class=.*\s(\w+)', response.css('div.RaceName > span.Icon_GradeType').get()).group(1)
+        except TypeError:
+            # grade競争以外はエラーとなるので、こちらを使用
+            item['grade'] = ''
+
+        try:
+            item['side'] = re.search(r'\((\D+)\)', RaceData01).group(1).split(' ')[1]
+        except IndexError:
+            # 内回り、外回りの存在しないコースではエラーとなるので、こちらを使用
+            item['side'] = ''
+
+        try:
+            item['start_time'] = re.search(r'(.*)発走', RaceData01).group(1)
+        except AttributeError:
+            # 発走時間が未定の場合はエラーとなるので、こちらを使用
+            item['start_time'] = ''
+
+        try:
+            item['cource_type'] = re.search(r'/\s(\D*)(\d*)', RaceData01).group(1)
+        except AttributeError:
+            # 発走時間が未定の場合はエラーとなるので、こちらを使用
+            item['cource_type'] = re.search(r'\s(\D+)', RaceData01).group(1)
 
         return item
