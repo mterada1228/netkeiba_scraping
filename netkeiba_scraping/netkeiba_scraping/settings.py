@@ -70,7 +70,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
 #    'netkeiba_scraping.pipelines.NetkeibaScrapingPipeline': 300,
-'netkeiba_scraping.pipelines.SaveToRaceResultByMySQLPipeline': 800,
+'netkeiba_scraping.pipelines.SaveToMySQLPipeline': 800,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

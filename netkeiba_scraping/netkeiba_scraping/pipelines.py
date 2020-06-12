@@ -6,12 +6,14 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 import MySQLdb
+from netkeiba_scraping.items import RaceResult
+from netkeiba_scraping.items import HoseRaceResult
 
 class NetkeibaScrapingPipeline(object):
     def process_item(self, item, spider):
         return item
 
-class SaveToRaceResultByMySQLPipeline:
+class SaveToMySQLPipeline:
 
     """ item を MySQLに保存するPipeline """
 
@@ -34,6 +36,7 @@ class SaveToRaceResultByMySQLPipeline:
         self.c = self.conn.cursor()
 
         # テーブルが存在しなければ作成する
+        # レース結果テーブル
         self.c.execute("""
             CREATE TABLE IF NOT EXISTS `race_result` (\
                 `id` VARCHAR(12) NOT NULL, \
@@ -49,6 +52,29 @@ class SaveToRaceResultByMySQLPipeline:
                 )
         """)
 
+        # 各馬成績テーブル
+        self.c.execute("""
+            CREATE TABLE IF NOT EXISTS `hose_race_result` ( \
+                `hose_id` VARCHAR(10) NOT NULL, \
+                `race_id` VARCHAR(12) NOT NULL, \
+                `gate_num` VARCHAR(2) NOT NULL, \
+                `hose_num` VARCHAR(2) NOT NULL, \
+                `odds` VARCHAR(6) NOT NULL, \
+                `popularity` VARCHAR(2) NOT NULL, \
+                `rank` VARCHAR(2) NOT NULL, \
+                `jockey` VARCHAR(10) NOT NULL, \
+                `burden_weight` VARCHAR(4) NOT NULL, \
+                `time` VARCHAR(8) NOT NULL, \
+                `time_diff` VARCHAR(5) NOT NULL, \
+                `passing_order` VARCHAR(10) NOT NULL, \
+                `last_3f` VARCHAR(5) NOT NULL, \
+                `hose_weight` VARCHAR(4) NOT NULL, \
+                `hose_weight_diff` VARCHAR(4) NOT NULL, \
+                `get_prize` VARCHAR(20) NOT NULL, \
+                PRIMARY KEY(`hose_id`, `race_id` )
+            )
+        """)
+
         self .conn.commit()
 
     def close_spider(self, spider):
@@ -59,11 +85,20 @@ class SaveToRaceResultByMySQLPipeline:
 
     def process_item(self, item, spider):
 
-        """ race_result に item を格納する """
+        """ DB に item を格納する """
 
-        self.c.execute('INSERT IGNORE INTO `race_result` \
-                        (`id`,`name`,`date`,`condition`,`entire_rap`,`ave_1F`,`first_half_ave_3F`,`last_half_ave_3F`,`RPCI`) \
-                        VALUES (%(id)s, %(name)s, %(date)s, %(condition)s, %(entire_rap)s, %(ave_1F)s, %(first_half_ave_3F)s, %(last_half_ave_3F)s, %(RPCI)s)', dict(item))
+        # race_result tableへの保存
+        if isinstance(item, RaceResult):
+            self.c.execute('INSERT IGNORE INTO `race_result` \
+                            (`id`,`name`,`date`,`condition`,`entire_rap`,`ave_1F`,`first_half_ave_3F`,`last_half_ave_3F`,`RPCI`) \
+                            VALUES (%(id)s, %(name)s, %(date)s, %(condition)s, %(entire_rap)s, %(ave_1F)s, %(first_half_ave_3F)s, %(last_half_ave_3F)s, %(RPCI)s)', dict(item))
+
+        # hose_race_result tableへの保存       
+        if isinstance(item, HoseRaceResult):
+            self.c.execute('INSERT IGNORE INTO `hose_race_result` \
+                            (`hose_id`,`race_id`,`gate_num`,`hose_num`,`odds`,`popularity`,`rank`,`jockey`,`burden_weight`,`time`,`time_diff`,`passing_order`,`last_3f`,`hose_weight`,`hose_weight_diff`,`get_prize`) \
+                            VALUES (%(hose_id)s,%(race_id)s,%(gate_num)s,%(hose_num)s,%(odds)s,%(popularity)s,%(rank)s,%(jockey)s,%(burden_weight)s,%(time)s,%(time_diff)s,%(passing_order)s,%(last_3f)s,%(hose_weight)s,%(hose_weight_diff)s,%(get_prize)s)', dict(item))
+
         self.conn.commit()
 
         return item

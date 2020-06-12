@@ -47,7 +47,7 @@ class RaceResult(scrapy.Item):
     last_half_ave_3F = scrapy.Field()
     RPCI = scrapy.Field()
 
-class Hose(scrapy.Item):
+class HoseRaceResult(scrapy.Item):
 
     """ 競走馬-レース情報 """
 
