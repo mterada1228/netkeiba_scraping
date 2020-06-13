@@ -74,3 +74,10 @@ class Hose(scrapy.Item):
 
     hose_id = scrapy.Field()
     name = scrapy.Field()
+
+class RaceHose(scrapy.Item):
+
+    """ 出馬表-競走馬情報 """
+
+    race_id = scrapy.Field()
+    hose_id = scrapy.Field()

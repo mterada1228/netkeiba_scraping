@@ -8,7 +8,7 @@
 import scrapy
 import re
 from urllib.parse import urljoin
-from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose, Race
+from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose, Race, RaceHose
 from numpy import average
 
 class ParseModuleSpider(scrapy.Spider):
@@ -136,5 +136,16 @@ class ParseModuleSpider(scrapy.Spider):
         except AttributeError:
             # 発走時間が未定の場合はエラーとなるので、こちらを使用
             item['cource_type'] = re.search(r'\s(\D+)', RaceData01).group(1)
+
+        return item
+
+    def parse_race_hose(self, race_id, response):
+
+        """ 出馬表-競走馬データを取得する """
+
+        item = RaceHose()
+
+        item['race_id'] = race_id
+        item['hose_id'] = re.search(r'horse/(\d+)', response).group(1)
 
         return item

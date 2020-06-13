@@ -16,7 +16,7 @@ NEWSPIDER_MODULE = 'netkeiba_scraping.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'netkeiba_scraping (+http://www.yourdomain.com)'
+USER_AGENT = 'netkeiba_scraping (+http://blogs.kokorokun.com/)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True

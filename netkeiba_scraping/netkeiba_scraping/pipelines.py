@@ -6,7 +6,7 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 import MySQLdb
-from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose, Race
+from netkeiba_scraping.items import RaceResult, HoseRaceResult, Hose, Race, RaceHose
 
 class NetkeibaScrapingPipeline(object):
     def process_item(self, item, spider):
@@ -110,6 +110,15 @@ class SaveToMySQLPipeline:
                 PRIMARY KEY(`race_id`)
             )
         """)
+
+        # 出馬表-競走馬テーブルのCREATE文
+        self.c.execute("""
+            CREATE TABLE IF NOT EXISTS `race_hose` ( \
+                `race_id` VARCHAR(10) NOT NULL, \
+                `hose_id` VARCHAR(10) NOT NULL, \
+                PRIMARY KEY(`race_id`, `hose_id`)
+            )
+        """)
     
         self .conn.commit()
 
@@ -147,6 +156,12 @@ class SaveToMySQLPipeline:
                             (`race_id`, `race_date`, `race_cource`, `round`, `race_name`, `grade`, `start_time`, `cource_type`, `distance`, `turn`, `side`, `days`,`regulation1`, `regulation2` ,`regulation3`, `regulation4`, `prize1`, `prize2`, `prize3`, `prize4`, `prize5`) \
                             VALUES (%(race_id)s, %(race_date)s, %(race_cource)s, %(round)s, %(race_name)s, %(grade)s, %(start_time)s, %(cource_type)s, %(distance)s, %(turn)s, %(side)s, %(days)s,%(regulation1)s, %(regulation2)s ,%(regulation3)s, %(regulation4)s, %(prize1)s, %(prize2)s, %(prize3)s, %(prize4)s, %(prize5)s)', dict(item))
                              
+        # race_hose table への保存
+        if isinstance(item, RaceHose):
+            self.c.execute('INSERT IGNORE INTO `race_hose` \
+                            (`race_id`, `hose_id`) \
+                            VALUES (%(race_id)s, %(hose_id)s)', dict(item))
+
         self.conn.commit()
 
         return item
