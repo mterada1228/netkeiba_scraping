@@ -103,3 +103,6 @@ DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 # MySQL の 環境変数
 MYSQL_USER='netkeiba_scraper'
 MYSQL_PASSWORD='password'
+
+# LOGGING
+# LOG_FILE = 'scrapy.log'
