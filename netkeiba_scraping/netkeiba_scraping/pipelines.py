@@ -40,13 +40,17 @@ class SaveToMySQLPipeline:
             CREATE TABLE IF NOT EXISTS `race_result` (\
                 `id` VARCHAR(12) NOT NULL, \
                 `name` VARCHAR(200) NOT NULL, \
+                `cource_id` VARCHAR(3) NOT NULL, \
+                `cource_length` VARCHAR(5) NOT NULL, \
                 `date` VARCHAR(11) NOT NULL, \
+                `cource_type` VARCHAR(5) NOT NULL, \
                 `condition` VARCHAR(10) NOT NULL, \
                 `entire_rap` VARCHAR(200) NOT NULL, \
                 `ave_1F` DOUBLE(4,2) NOT NULL, \
                 `first_half_ave_3F` DOUBLE(4,2) NOT NULL, \
                 `last_half_ave_3F` DOUBLE(4,2) NOT NULL, \
                 `RPCI` DOUBLE(4,2),
+                `prize` VARCHAR(20), 
                 PRIMARY KEY(`id`)
                 )
         """)
@@ -135,8 +139,8 @@ class SaveToMySQLPipeline:
         # race_result tableへの保存
         if isinstance(item, RaceResult):
             self.c.execute('INSERT IGNORE INTO `race_result` \
-                            (`id`,`name`,`date`,`condition`,`entire_rap`,`ave_1F`,`first_half_ave_3F`,`last_half_ave_3F`,`RPCI`) \
-                            VALUES (%(id)s, %(name)s, %(date)s, %(condition)s, %(entire_rap)s, %(ave_1F)s, %(first_half_ave_3F)s, %(last_half_ave_3F)s, %(RPCI)s)', dict(item))
+                            (`id`,`name`, `cource_id`, `cource_length`,`date`, `cource_type`, `condition`, `entire_rap`,`ave_1F`,`first_half_ave_3F`,`last_half_ave_3F`,`RPCI`, `prize`) \
+                            VALUES (%(id)s, %(name)s, %(cource_id)s, %(cource_length)s, %(date)s, %(cource_type)s, %(condition)s, %(entire_rap)s, %(ave_1F)s, %(first_half_ave_3F)s, %(last_half_ave_3F)s, %(RPCI)s, %(prize)s)', dict(item))
 
         # hose_race_result tableへの保存       
         if isinstance(item, HoseRaceResult):

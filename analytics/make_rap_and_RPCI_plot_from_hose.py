@@ -28,7 +28,7 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, '2015103057')
+    hoseRaceResults = getHoseRaceResult(session, '2014104249')
 
     # RaceResult　データの取得
     raceResults = getRaceResult(session, "函館スプリント")
@@ -76,22 +76,30 @@ def dataPlot(hoseRaceResults, raceResults=None):
     """
 
     colorTbl = []
-    for hoseRaceResult in hoseRaceResults:
-        if hoseRaceResult.HoseRaceResult.rank == '1':
-            colorTbl.append('yellow')
-        elif float(hoseRaceResult.HoseRaceResult.time_diff) <= 0.4:
-            colorTbl.append('green')
-        elif float(hoseRaceResult.HoseRaceResult.time_diff) <= 1.0:
-            colorTbl.append('blue')
-        else:
-            colorTbl.append('gray')
+    for index, hoseRaceResult in enumerate(hoseRaceResults):
+        try:
+            if hoseRaceResult.HoseRaceResult.rank == '1':
+                colorTbl.append('yellow')
+            elif float(hoseRaceResult.HoseRaceResult.time_diff) <= 0.4:
+                colorTbl.append('green')
+            elif float(hoseRaceResult.HoseRaceResult.time_diff) <= 1.0:
+                colorTbl.append('blue')
+            else:
+                colorTbl.append('gray')
+        except ValueError as e:
+            print(f'race_id: {hoseRaceResult.HoseRaceResult.race_id} 競争除外レースのため結果から外します。')
+            # グラフから競争除外のレースのプロットを除外
+            del x[index]
+            del y[index]
+            del names[index]
+            continue            
 
     # RaceResultsを受け取った場合はプロットする
     if raceResults != None:
         for raceResult in raceResults:
             x.append(raceResult.RPCI)
             y.append(raceResult.ave_1F)
-            names.append(f'{hoseRaceResult.RaceResult.date} {raceResult.name}')
+            names.append(f'{raceResult.date} {raceResult.name}')
             colorTbl.append("red")
 
     fig,ax = plt.subplots()

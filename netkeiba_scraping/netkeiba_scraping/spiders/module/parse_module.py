@@ -27,8 +27,11 @@ class ParseModuleSpider(scrapy.Spider):
         mainrace_data_span_array = mainrace_data_dd.css('span').xpath('string()').get().split('\xa0')
 
         item['name'] = mainrace_data_dd.css('h1').xpath('string()').get() 
+        item['cource_id'] = re.search(r'/race/(\d+)', response.url).group(1)[4:6]
+        item['cource_length'] = re.search(r'\d+', mainrace_data_span_array[0]).group(0)
         item['date'] = small_txt_p_array[0]
-        item['condition'] = mainrace_data_span_array[4]
+        item['cource_type'] = re.search(r'(\S+) :',mainrace_data_span_array[4]).group(1)
+        item['condition'] = re.search(r': (\S+)',mainrace_data_span_array[4]).group(1)
 
         race_rap = response.css('td.race_lap_cell').xpath('string()').getall()[0]
         race_rap_float_array = [float(x) for x in race_rap.replace(' ', '').split('-')]
@@ -40,6 +43,8 @@ class ParseModuleSpider(scrapy.Spider):
         item['first_half_ave_3F'] = race_pace_float_array[0]
         item['last_half_ave_3F'] = race_pace_float_array[1]
         item['RPCI'] = 50 * race_pace_float_array[0] / race_pace_float_array[1]
+
+        item['prize'] = response.css('.race_table_01 > tr')[1].css('td.txt_r').xpath('string()').getall()[-1]
 
         return item
 

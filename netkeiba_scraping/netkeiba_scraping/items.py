@@ -39,13 +39,17 @@ class RaceResult(scrapy.Item):
     
     id = scrapy.Field()
     name = scrapy.Field()
+    cource_id = scrapy.Field() # add
+    cource_length = scrapy.Field() # add
     date = scrapy.Field()
-    condition = scrapy.Field()
+    cource_type = scrapy.Field() #add 
+    condition = scrapy.Field() # nodify
     entire_rap = scrapy.Field()
     ave_1F = scrapy.Field()
     first_half_ave_3F = scrapy.Field()
     last_half_ave_3F = scrapy.Field()
     RPCI = scrapy.Field()
+    prize = scrapy.Field() # add
 
 class HoseRaceResult(scrapy.Item):
 
