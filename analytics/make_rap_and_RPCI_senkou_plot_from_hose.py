@@ -6,7 +6,6 @@ from model.hose import Hose
 from model.hoseRaceResult import HoseRaceResult
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 
 import pdb
 
@@ -29,17 +28,17 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, '2014106400')
+    hoseRaceResults = getHoseRaceResult(session, '2015103899')
 
     # RaceResult　データの取得
-    raceResults = getRaceResult(session, '京成盃グランドマイラ')
-
-    # Session クローズ
-    session.close()
+    raceResults = getRaceResult(session, cource_id='43', cource_length='1500', cource_condition='稍重', prize='100.0')
 
     # グラフにプロットする
     # dataPlot(hoseRaceResults)
-    dataPlot(hoseRaceResults, raceResults)
+    dataPlot(session, hoseRaceResults, raceResults)
+
+    # Session クローズ
+    session.close()
 
 def getHoseRaceResult(session, hose_id):
 
@@ -55,9 +54,7 @@ def getRaceResult(session,
                     cource_id=None,
                     cource_length=None,
                     cource_condition=None,
-                    prize=None,
-                    prize_min=None,
-                    prize_max=None):
+                    prize=None):
 
     # レース名検索
     if raceName != None: 
@@ -76,25 +73,10 @@ def getRaceResult(session,
                 .filter(RaceResult.cource_length == cource_length)\
                     .filter(RaceResult.cource_condition == cource_condition)\
                         .filter(RaceResult.prize == prize)
-    
-    """
-        以下条件でレースを検索
-        1. コースID
-        2. 距離
-        3. コース状態
-        4. 1着賞金(min, max 指定)
-    """
-    if cource_id != None and cource_length != None and cource_length != None and prize_min != None and prize_max != None:
-        raceResults = session.query(RaceResult)\
-            .filter(RaceResult.cource_id == cource_id)\
-                .filter(RaceResult.cource_length == cource_length)\
-                    .filter(RaceResult.cource_condition == cource_condition)\
-                        .filter(RaceResult.prize >= prize_min)\
-                            .filter(RaceResult.prize <= prize_max)
 
     return raceResults
 
-def dataPlot(hoseRaceResults, raceResults=None):
+def dataPlot(session, hoseRaceResults, raceResults=None):
 
     """ グラフを描画する """
 
@@ -104,7 +86,7 @@ def dataPlot(hoseRaceResults, raceResults=None):
     # グラフプロット
     x = [ hoseRaceResult.RaceResult.RPCI for hoseRaceResult in hoseRaceResults ]
     y = [ hoseRaceResult.RaceResult.ave_1F for hoseRaceResult in hoseRaceResults ]
-    names = [ f'{hoseRaceResult.RaceResult.date} {hoseRaceResult.RaceResult.name} {hoseRaceResult.RaceResult.cource_condition} {hoseRaceResult.HoseRaceResult.time_diff}' for hoseRaceResult in hoseRaceResults ]
+    names = [ f' {hoseRaceResult.HoseRaceResult.passing_order} {hoseRaceResult.RaceResult.date} {hoseRaceResult.RaceResult.name} {hoseRaceResult.RaceResult.cource_condition} ' for hoseRaceResult in hoseRaceResults ]
 
     """ 
         着差ごとにplotは色分けする 
@@ -116,6 +98,11 @@ def dataPlot(hoseRaceResults, raceResults=None):
 
     colorTbl = []
     for index, hoseRaceResult in enumerate(hoseRaceResults):
+
+        # 出走頭数をカウントする
+        all_hose_count = session.query(HoseRaceResult).filter(HoseRaceResult.race_id == hoseRaceResult.HoseRaceResult.race_id)
+        pdb.set_trace()
+
         try:
             if hoseRaceResult.HoseRaceResult.rank == '1':
                 colorTbl.append('yellow')
@@ -138,12 +125,8 @@ def dataPlot(hoseRaceResults, raceResults=None):
         for raceResult in raceResults:
             x.append(raceResult.RPCI)
             y.append(raceResult.ave_1F)
-            names.append(f'{raceResult.date} {raceResult.name} {raceResult.cource_condition}')
+            names.append(f'{raceResult.date} {raceResult.name}')
             colorTbl.append("red")
-    
-        # 中央値を求めてプロットする
-        x_median = np.median([ raceResult.RPCI for raceResult in raceResults ])
-        y_median = np.median([ raceResult.ave_1F for raceResult in raceResults ] )
 
     fig,ax = plt.subplots()
     sc = plt.scatter(x, y, c=colorTbl)
@@ -188,10 +171,6 @@ def dataPlot(hoseRaceResults, raceResults=None):
     plt.xlim(30, 70)
     plt.ylim(10, 14)
     plt.savefig('test_hoseRaceResult.png', dpi=300)
-    if y_median:
-        plt.hlines(y_median, 30, 70, "red", linestyles='dashed')
-    if x_median:
-        plt.vlines(x_median, 10, 14, "red", linestyles='dashed') 
     plt.show()
 
 if __name__ == "__main__":

@@ -7,36 +7,14 @@ import scrapy
 from scrapy.spiders import Rule
 from netkeiba_scraping.spiders.module.parse_module import ParseModuleSpider
 from datetime import datetime, timedelta
-import pdb
+from netkeiba_scraping.spiders.module.urlGenerator import getUrls
 
 class RaceResultSpider(scrapy.Spider):
 
-    def getUrls(cource_code, start_date, end_date):
-
-        """ scrapingを実行するurlのリストを返す """
-
-        base_url = 'https://db.netkeiba.com/race/'
-
-        time_diff_days = end_date - start_date + timedelta(days=1)
-        time_itereter = timedelta(days=0)
-
-        start_urls = []
-
-        while time_diff_days > time_itereter:
-            date = (start_date + time_itereter).strftime('%Y%m%d')
-            round_list = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-
-            for round in round_list:
-                url = base_url + date[0:4] + cource_code + date[4:8] + round + '/'
-                start_urls.append(url)
-                print(url)
-
-            time_itereter += timedelta(days=1)
-
-        return start_urls
-
     name = 'race_result'
     allowed_domains = ['db.netkeiba.com']
+
+    base_url = 'https://db.netkeiba.com/race/'
 
     """ 
         競馬場コード
@@ -45,11 +23,11 @@ class RaceResultSpider(scrapy.Spider):
     cource_code = '43'
 
     # 検索開始、終了日
-    start_date = datetime(2020, 1, 11)
-    end_date = datetime(2020, 1, 11)
+    start_date = datetime(2019, 9, 28)
+    end_date = datetime(2020, 6, 15)
 
-    start_urls = getUrls(cource_code, start_date, end_date)
-    # start_urls = ['https://db.netkeiba.com/race/202045051111/']
+    start_urls = getUrls(base_url, cource_code, start_date, end_date, query='/')
+    # start_urls = ['https://db.netkeiba.com/race/201943061911/', 'https://db.netkeiba.com/race/201843062011/', 'https://db.netkeiba.com/race/201743062111/', 'https://db.netkeiba.com/race/201643062211/', 'https://db.netkeiba.com/race/201543061711/', 'https://db.netkeiba.com/race/201443061811/']
 
     def parse(self, response):
 

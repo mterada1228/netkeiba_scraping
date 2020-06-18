@@ -2,6 +2,9 @@ import scrapy
 from urllib.parse import urljoin
 from netkeiba_scraping.spiders.module.parse_module import ParseModuleSpider
 import re
+from netkeiba_scraping.spiders.module.urlGenerator import getUrls
+from datetime import datetime, timedelta
+import pdb
 
 """ 
     レースページ
@@ -14,8 +17,14 @@ import re
 class RaceSpider(scrapy.Spider):
 
     name = 'race'
-    allowed_domains = ['race.netkeiba.com', 'db.netkeiba.com']
-    start_urls = ['https://race.netkeiba.com/race/shutuba.html?race_id=202005030611']
+    allowed_domains = ['race.netkeiba.com', 'nar.netkeiba.com', 'db.netkeiba.com']
+    
+    #start_urls = getUrls(base_url='https://nar.netkeiba.com/race/shutuba.html?race_id=',
+    #                        cource_code='43',
+    #                        start_date=datetime(2020, 6, 17),
+    #                        end_date=datetime(2020, 6, 17))
+
+    start_urls = ['https://nar.netkeiba.com/race/shutuba.html?race_id=202043061811']
     base_url = 'https://db.netkeiba.com/'
 
     def parse(self, response):
@@ -25,16 +34,17 @@ class RaceSpider(scrapy.Spider):
             1. 出馬表基本情報の取得
             2. 出馬表-競走馬情報の取得
             3. 各競走馬のリンクをたどる
-         """
+        """
 
         # 1. レース基本情報の取得
         yield ParseModuleSpider.parse_race(self, response)
 
+        hoses = response.css('table.RaceTable01 > tr.HorseList')
         hose_links = response.css('span.HorseName > a::attr("href")').getall()
 
         # 2. 出馬表-競走馬情報の取得
         race_id = re.search(r'race_id=(\d+)', response.url).group(1)
-        for hose in hose_links:
+        for hose in hoses:
             yield ParseModuleSpider.parse_race_hose(self, race_id, hose)
 
         # 3.各競走馬データのリンクをたどる

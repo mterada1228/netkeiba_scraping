@@ -31,9 +31,14 @@ class ParseModuleSpider(scrapy.Spider):
         item['cource_length'] = re.search(r'\d+', mainrace_data_span_array[0]).group(0)
         item['date'] = small_txt_p_array[0]
         item['cource_type'] = re.search(r'(\S+) :',mainrace_data_span_array[4]).group(1)
-        item['condition'] = re.search(r': (\S+)',mainrace_data_span_array[4]).group(1)
+        item['cource_condition'] = re.search(r': (\S+)',mainrace_data_span_array[4]).group(1)
 
-        race_rap = response.css('td.race_lap_cell').xpath('string()').getall()[0]
+        try:
+            race_rap = response.css('td.race_lap_cell').xpath('string()').getall()[0]
+        except IndexError:
+            print('レースのラップが提供されていません。Skipします。')
+            return
+
         race_rap_float_array = [float(x) for x in race_rap.replace(' ', '').split('-')]
         race_pace = response.css('td.race_lap_cell').xpath('string()').getall()[1]
         race_pace_float_array = [float(x) for x in re.search(r'\(([\d,.,-]+)', race_pace).group(1).split('-')]
@@ -45,6 +50,8 @@ class ParseModuleSpider(scrapy.Spider):
         item['RPCI'] = 50 * race_pace_float_array[0] / race_pace_float_array[1]
 
         item['prize'] = response.css('.race_table_01 > tr')[1].css('td.txt_r').xpath('string()').getall()[-1]
+
+        item['hose_all_number'] = len(response.css('table.race_table_01 > tr').getall()) - 1
 
         return item
 
@@ -97,21 +104,36 @@ class ParseModuleSpider(scrapy.Spider):
         RaceData01 = response.css('div.RaceData01').xpath('string()').get().split('\n')[1]
         # 例) ['', '2回', '東京', '6日目', 'サラ系３歳', 'オープン', '\xa0\xa0\xa0\xa0\xa0', '(国際) 牡・牝(指)', '定量', '22頭', '', '本賞金:10500,4200,2600,1600,1050万円', '']
         RaceData02 = response.css('div.RaceData02').xpath('string()').get().split('\n')
-        prizes = re.findall(r'\d+', RaceData02[11])
         
         item = Race()
+
+        # 中央競馬の時の処理
+        if re.search(r'https://([\w.]+/)', response.url).group(1) == 'race.netkeiba.com/':
+            prizes = re.findall(r'\d+', RaceData02[11])
+            item['race_cource'] = RaceData02[2]
+            item['days'] = RaceData02[3]
+            item['regulation1'] = RaceData02[4]
+            item['regulation2'] = RaceData02[5]
+            item['regulation3'] = RaceData02[7]
+            item['regulation4'] = RaceData02[8]
+            item['round'] = response.css('span.RaceNum')[0].xpath('string()').get()
+
+        # 地方競馬の時の処理
+        if re.search(r'https://([\w.]+/)', response.url).group(1) == 'nar.netkeiba.com/':
+            prizes = re.findall(r'[\d.]+', RaceData02[8])
+            item['race_cource'] = RaceData02[2]
+            item['days'] = RaceData02[3]
+            item['regulation1'] = RaceData02[4]
+            item['regulation2'] = ''
+            item['regulation3'] = ''
+            item['regulation4'] = ''
+            item['round'] = response.css('div.RaceList_Item01 > div > span').xpath('string()').get()
+
         item['race_id'] = re.search(r'race_id=(\d+)', response.url).group(1)
-        item['race_date'] = response.css('dd.Active').xpath('string()').get()
-        item['race_cource'] = RaceData02[2]
-        item['round'] = response.css('span.RaceNum')[0].xpath('string()').get()
+        item['race_date'] = response.css('dd.Active').xpath('string()').get().strip()
         item['race_name'] = response.css('div.RaceName').xpath('string()').get().strip()
         item['distance'] = re.search(r'(\d+)m', RaceData01).group(1)
         item['turn'] = re.search(r'\((\D+)\)', RaceData01).group(1).split(' ')[0]
-        item['days'] = RaceData02[3]
-        item['regulation1'] = RaceData02[4]
-        item['regulation2'] = RaceData02[5]
-        item['regulation3'] = RaceData02[7]
-        item['regulation4'] = RaceData02[8]
         item['prize1'] = prizes[0]
         item['prize2'] = prizes[1]
         item['prize3'] = prizes[2]
@@ -151,6 +173,8 @@ class ParseModuleSpider(scrapy.Spider):
         item = RaceHose()
 
         item['race_id'] = race_id
-        item['hose_id'] = re.search(r'horse/(\d+)', response).group(1)
+        item['hose_id'] = re.search(r'horse/(\d+)', response.css('span.HorseName > a::attr("href")').get()).group(1)
+        item['gate_num'] = int(response.css('td').xpath('string()').getall()[0])
+        item['hose_num'] = int(response.css('td').xpath('string()').getall()[1])
 
         return item

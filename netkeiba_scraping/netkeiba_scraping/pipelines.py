@@ -44,13 +44,14 @@ class SaveToMySQLPipeline:
                 `cource_length` VARCHAR(5) NOT NULL, \
                 `date` VARCHAR(11) NOT NULL, \
                 `cource_type` VARCHAR(5) NOT NULL, \
-                `condition` VARCHAR(10) NOT NULL, \
+                `cource_condition` VARCHAR(10) NOT NULL, \
                 `entire_rap` VARCHAR(200) NOT NULL, \
                 `ave_1F` DOUBLE(4,2) NOT NULL, \
                 `first_half_ave_3F` DOUBLE(4,2) NOT NULL, \
                 `last_half_ave_3F` DOUBLE(4,2) NOT NULL, \
                 `RPCI` DOUBLE(4,2),
                 `prize` VARCHAR(20), 
+                `hose_all_number` VARCHAR(2),
                 PRIMARY KEY(`id`)
                 )
         """)
@@ -90,7 +91,7 @@ class SaveToMySQLPipeline:
         # 出馬表テーブル
         self.c.execute("""
             CREATE TABLE IF NOT EXISTS `race` ( \
-                `race_id` VARCHAR(10) NOT NULL, \
+                `race_id` VARCHAR(12) NOT NULL, \
                 `race_date` VARCHAR(10) NOT NULL, \
                 `race_cource` VARCHAR(10) NOT NULL, \
                 `round` VARCHAR(4) NOT NULL, \
@@ -118,8 +119,10 @@ class SaveToMySQLPipeline:
         # 出馬表-競走馬テーブルのCREATE文
         self.c.execute("""
             CREATE TABLE IF NOT EXISTS `race_hose` ( \
-                `race_id` VARCHAR(10) NOT NULL, \
+                `race_id` VARCHAR(12) NOT NULL, \
                 `hose_id` VARCHAR(10) NOT NULL, \
+                `gate_num` INTEGER, \
+                `hose_num` INTEGER, \
                 PRIMARY KEY(`race_id`, `hose_id`)
             )
         """)
@@ -139,8 +142,11 @@ class SaveToMySQLPipeline:
         # race_result tableへの保存
         if isinstance(item, RaceResult):
             self.c.execute('INSERT IGNORE INTO `race_result` \
-                            (`id`,`name`, `cource_id`, `cource_length`,`date`, `cource_type`, `condition`, `entire_rap`,`ave_1F`,`first_half_ave_3F`,`last_half_ave_3F`,`RPCI`, `prize`) \
-                            VALUES (%(id)s, %(name)s, %(cource_id)s, %(cource_length)s, %(date)s, %(cource_type)s, %(condition)s, %(entire_rap)s, %(ave_1F)s, %(first_half_ave_3F)s, %(last_half_ave_3F)s, %(RPCI)s, %(prize)s)', dict(item))
+                            (`id`,`name`, `cource_id`, `cource_length`,`date`, `cource_type`, `cource_condition`, `entire_rap`,`ave_1F`,`first_half_ave_3F`,`last_half_ave_3F`,`RPCI`, `prize`, `hose_all_number`) \
+                            VALUES (%(id)s, %(name)s, %(cource_id)s, %(cource_length)s, %(date)s, %(cource_type)s, %(cource_condition)s, %(entire_rap)s, %(ave_1F)s, %(first_half_ave_3F)s, %(last_half_ave_3F)s, %(RPCI)s, %(prize)s, %(hose_all_number)s)', dict(item))
+
+            # 追加カラム、hose_all_numberの追加用
+            # self.c.execute('UPDATE `race_result` SET `hose_all_number`=%(hose_all_number)s WHERE `id`=%(id)s', dict(item))
 
         # hose_race_result tableへの保存       
         if isinstance(item, HoseRaceResult):
@@ -163,8 +169,8 @@ class SaveToMySQLPipeline:
         # race_hose table への保存
         if isinstance(item, RaceHose):
             self.c.execute('INSERT IGNORE INTO `race_hose` \
-                            (`race_id`, `hose_id`) \
-                            VALUES (%(race_id)s, %(hose_id)s)', dict(item))
+                            (`race_id`, `hose_id`, `gate_num`, `hose_num`) \
+                            VALUES (%(race_id)s, %(hose_id)s, %(gate_num)s, %(hose_num)s)', dict(item))
 
         self.conn.commit()
 

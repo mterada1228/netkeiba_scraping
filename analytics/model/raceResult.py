@@ -9,13 +9,18 @@ class RaceResult(Base):
 
     id =  Column(String(12), primary_key=True)
     name = Column(String(200))
+    cource_id = Column(String(3))
+    cource_length = Column(String(5))
     date = Column(String(11))
-    condition = Column(String(10))
+    cource_type = Column(String(5))
+    cource_condition = Column(String(10))
     entire_rap = Column(String(200))
     ave_1F = Column(Float)
     first_half_ave_3F = Column(Float)
     last_half_ave_3F = Column(Float)
     RPCI = Column(Float)
+    prize = Column(Float)
+    hose_all_number = Column(String(2))
 
     def __repr__(self):
-        return "<RaceResult(id='%s', name='%s', date='%s', condition='%s', entire_rap='%s', ave_1F='%f', first_half_ave_3F='%f',last_half_ave_3F='%f',RPCI='%f'>" % (self.id, self.name, self.date, self.condition, self.entire_rap, self.ave_1F, self.first_half_ave_3F, self.last_half_ave_3F, self.RPCI) 
+        return "<RaceResult(id='%s', name='%s', cource_id='%s', cource_length='%s', date='%s', cource_type='%s', cource_condition='%s', entire_rap='%s', ave_1F='%f', first_half_ave_3F='%f',last_half_ave_3F='%f',RPCI='%f', prize='%s'>" % (self.id, self.name, self.cource_id, self.cource_length, self.date, self.cource_type, self.cource_condition, self.entire_rap, self.ave_1F, self.first_half_ave_3F, self.last_half_ave_3F, self.RPCI, self.prize) 
