@@ -29,10 +29,10 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, '2014106400')
+    hoseRaceResults = getHoseRaceResult(session, '2015101654')
 
     # RaceResult　データの取得
-    raceResults = getRaceResult(session, '京成盃グランドマイラ')
+    raceResults = getRaceResult(session, '宝塚記念')
 
     # Session クローズ
     session.close()

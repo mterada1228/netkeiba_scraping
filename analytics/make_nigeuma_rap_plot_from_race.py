@@ -30,7 +30,7 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, race_id='202043061711')
+    hoseRaceResults = getHoseRaceResult(session, race_id='202009030811')
 
     # Session クローズ
     session.close()

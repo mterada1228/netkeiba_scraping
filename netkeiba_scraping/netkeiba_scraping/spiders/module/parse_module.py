@@ -44,14 +44,71 @@ class ParseModuleSpider(scrapy.Spider):
         race_pace_float_array = [float(x) for x in re.search(r'\(([\d,.,-]+)', race_pace).group(1).split('-')]
 
         item['entire_rap'] = race_rap.replace(' ', '')
+        
+        # 3Fで割り切れないレースの場合、配列の初めは0.5F(100m)の距離となっているので * 2 して補正する。
+        if int(item['cource_length']) % 200 != 0:
+            race_rap_float_array[0] = race_rap_float_array[0] * 2    
+
         item['ave_1F'] = average(race_rap_float_array) 
-        item['first_half_ave_3F'] = race_pace_float_array[0]
-        item['last_half_ave_3F'] = race_pace_float_array[1]
-        item['RPCI'] = 50 * race_pace_float_array[0] / race_pace_float_array[1]
+        item['first_half_ave_3F'] = race_rap_float_array[0] + race_rap_float_array[1] + race_rap_float_array[2]
+        item['last_half_ave_3F'] = race_rap_float_array[-1] + race_rap_float_array[-2] + race_rap_float_array[-3]
+        item['RPCI'] = 50 * item['first_half_ave_3F'] / item['last_half_ave_3F']
 
         item['prize'] = response.css('.race_table_01 > tr')[1].css('td.txt_r').xpath('string()').getall()[-1]
 
         item['hose_all_number'] = len(response.css('table.race_table_01 > tr').getall()) - 1
+
+        return item
+
+    def parse_race_result_from_sokuhou(self, response):
+
+        """ レース結果情報を取得 """
+
+        item = RaceResult()
+
+        raceData01_array = response.css('div.RaceData01').xpath('string()').get().replace('\n', '').replace('/', '').split(' ')
+
+        item['id'] = re.search(r'race_id=(\d+)', response.url).group(1)
+        item['name'] = response.css('div.RaceName').xpath('string()').get().strip()
+        item['cource_id'] = re.search(r'race_id=(\d+)', response.url).group(1)[4:6]
+        item['cource_length'] = re.search(r'\d+', raceData01_array[2]).group(0)
+
+        year = re.search(r'race_id=(\d+)', response.url).group(1)[0:4]
+        month_day = re.search(r'(\S+)\(', response.css('dl#RaceList_DateList > dd.Active').xpath('string()').get()).group(1)
+        item['date'] = year + '年' + month_day
+
+        if re.search(r'[芝ダ障]', raceData01_array[2]).group(0) == '芝':
+            item['cource_type'] = '芝'
+        elif re.search(r'[芝ダ障]', raceData01_array[2]).group(0) == 'ダ':
+            item['cource_type'] = 'ダート'
+        elif re.search(r'[芝ダ障]', raceData01_array[2]).group(0) == '障':
+            item['cource_type'] = '障害'
+        else:
+            item['cource_type'] = re.search(r'[芝ダ障]', raceData01_array[2]).group(0)
+        
+        if re.search(r':(\S+)', raceData01_array[5]).group(1) == '稍':
+            item['cource_condition'] = '稍重'
+        elif re.search(r':(\S+)', raceData01_array[5]).group(1) == '不':
+            item['cource_condition'] = '不良'
+        else:
+            item['cource_condition'] = re.search(r':(\S+)', raceData01_array[5]).group(1)
+
+        race_rap_array = response.css('tr.HaronTime').getall()[1].replace('</td>', '').replace('\n</tr>', '').split('<td>')[1:]
+        race_rap_float_array = [ float(x) for x in race_rap_array ]
+        item['entire_rap'] = '-'.join(race_rap_array)
+
+        # 3Fで割り切れないレースの場合、配列の初めは0.5F(100m)の距離となっているので * 2 して補正する。
+        if int(item['cource_length']) % 200 != 0:
+            race_rap_float_array[0] = race_rap_float_array[0] * 2    
+
+        item['ave_1F'] = average(race_rap_float_array) 
+        item['first_half_ave_3F'] = race_rap_float_array[0] + race_rap_float_array[1] + race_rap_float_array[2]
+        item['last_half_ave_3F'] = race_rap_float_array[-1] + race_rap_float_array[-2] + race_rap_float_array[-3]
+        item['RPCI'] = 50 * item['first_half_ave_3F'] / item['last_half_ave_3F']
+
+        raceData02_array = response.css('div.RaceData02 > span').xpath('string()').getall()
+        item['prize'] = re.search(r':(\d+)', raceData02_array[-1]).group(1)
+        item['hose_all_number'] = re.search(r'(\d+)', raceData02_array[-2]).group(1)
 
         return item
 
@@ -174,7 +231,12 @@ class ParseModuleSpider(scrapy.Spider):
 
         item['race_id'] = race_id
         item['hose_id'] = re.search(r'horse/(\d+)', response.css('span.HorseName > a::attr("href")').get()).group(1)
-        item['gate_num'] = int(response.css('td').xpath('string()').getall()[0])
-        item['hose_num'] = int(response.css('td').xpath('string()').getall()[1])
+        
+        try:
+            item['gate_num'] = int(response.css('td').xpath('string()').getall()[0])
+            item['hose_num'] = int(response.css('td').xpath('string()').getall()[1])
+        except ValueError:
+            item['gate_num'] = ''
+            item['hose_num'] = ''
 
         return item

@@ -13,7 +13,7 @@ class HoseSpider(scrapy.Spider):
 
     name = 'hose'
     allowed_domains = ['race.netkeiba.com', 'db.netkeiba.com']
-    start_urls = ['https://db.netkeiba.com/horse/2016101492']
+    start_urls = ['https://db.netkeiba.com/horse/2013102360/']
 
     base_url = 'https://db.netkeiba.com/'
 

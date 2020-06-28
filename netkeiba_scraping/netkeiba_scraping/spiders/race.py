@@ -24,7 +24,7 @@ class RaceSpider(scrapy.Spider):
     #                        start_date=datetime(2020, 6, 17),
     #                        end_date=datetime(2020, 6, 17))
 
-    start_urls = ['https://nar.netkeiba.com/race/shutuba.html?race_id=202043061811']
+    start_urls = ['https://race.netkeiba.com/race/shutuba.html?race_id=202009040211']
     base_url = 'https://db.netkeiba.com/'
 
     def parse(self, response):

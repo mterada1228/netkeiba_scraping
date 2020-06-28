@@ -20,7 +20,7 @@ class RaceResult(Base):
     last_half_ave_3F = Column(Float)
     RPCI = Column(Float)
     prize = Column(Float)
-    hose_all_number = Column(String(2))
+    hose_all_number = Column(Integer)
 
     def __repr__(self):
         return "<RaceResult(id='%s', name='%s', cource_id='%s', cource_length='%s', date='%s', cource_type='%s', cource_condition='%s', entire_rap='%s', ave_1F='%f', first_half_ave_3F='%f',last_half_ave_3F='%f',RPCI='%f', prize='%s'>" % (self.id, self.name, self.cource_id, self.cource_length, self.date, self.cource_type, self.cource_condition, self.entire_rap, self.ave_1F, self.first_half_ave_3F, self.last_half_ave_3F, self.RPCI, self.prize) 

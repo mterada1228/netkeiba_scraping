@@ -11,7 +11,7 @@ from netkeiba_scraping.spiders.module.urlGenerator import getUrls
 
 class RaceResultSpider(scrapy.Spider):
 
-    name = 'race_result'
+    name = 'race_result_from_db'
     allowed_domains = ['db.netkeiba.com']
 
     base_url = 'https://db.netkeiba.com/race/'
@@ -23,11 +23,11 @@ class RaceResultSpider(scrapy.Spider):
     cource_code = '43'
 
     # 検索開始、終了日
-    start_date = datetime(2019, 9, 28)
-    end_date = datetime(2020, 6, 15)
+    start_date = datetime(2017, 6, 17)
+    end_date = datetime(2020, 6, 17)
 
-    start_urls = getUrls(base_url, cource_code, start_date, end_date, query='/')
-    # start_urls = ['https://db.netkeiba.com/race/201943061911/', 'https://db.netkeiba.com/race/201843062011/', 'https://db.netkeiba.com/race/201743062111/', 'https://db.netkeiba.com/race/201643062211/', 'https://db.netkeiba.com/race/201543061711/', 'https://db.netkeiba.com/race/201443061811/']
+    # start_urls = getUrls(base_url, cource_code, start_date, end_date, query='/')
+    start_urls = ['https://race.netkeiba.com/race/result.html?race_id=202009030811']
 
     def parse(self, response):
 

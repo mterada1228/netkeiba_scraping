@@ -4,8 +4,10 @@ from sqlalchemy.orm.exc import NoResultFound
 from model.raceResult import RaceResult
 from model.hose import Hose
 from model.hoseRaceResult import HoseRaceResult
+from model.raceHose import RaceHose
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 
 import pdb
 
@@ -28,55 +30,25 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, '2015103899')
-
-    # RaceResult　データの取得
-    raceResults = getRaceResult(session, cource_id='43', cource_length='1500', cource_condition='稍重', prize='100.0')
+    hoseRaceResults = getHoseRaceResult(session, race_id='2016104505')
 
     # グラフにプロットする
-    # dataPlot(hoseRaceResults)
-    dataPlot(session, hoseRaceResults, raceResults)
+    dataPlot(hoseRaceResults)
 
     # Session クローズ
     session.close()
 
-def getHoseRaceResult(session, hose_id):
+def getHoseRaceResult(session, race_id):
 
-    hoseRaceResults = session.query(Hose, HoseRaceResult, RaceResult)\
-        .filter(Hose.hose_id == hose_id)\
-            .filter(Hose.hose_id == HoseRaceResult.hose_id)\
-                .filter(HoseRaceResult.race_id == RaceResult.id)
+    hoseRaceResults = session.query(RaceHose, Hose, HoseRaceResult, RaceResult)\
+        .filter(RaceHose.race_id == race_id)\
+            .filter(RaceHose.hose_id == Hose.hose_id)\
+                .filter(Hose.hose_id == HoseRaceResult.hose_id)\
+                    .filter(HoseRaceResult.race_id == RaceResult.id)
 
     return hoseRaceResults
 
-def getRaceResult(session, 
-                    raceName=None,
-                    cource_id=None,
-                    cource_length=None,
-                    cource_condition=None,
-                    prize=None):
-
-    # レース名検索
-    if raceName != None: 
-        raceResults = session.query(RaceResult).filter(RaceResult.name.like(f'%{raceName}%'))
-
-    """
-        以下条件でレースを検索
-        1. コースID
-        2. 距離
-        3. コース状態
-        4. 1着賞金 
-    """
-    if cource_id != None and cource_length != None and cource_length != None and prize != None:
-        raceResults = session.query(RaceResult)\
-            .filter(RaceResult.cource_id == cource_id)\
-                .filter(RaceResult.cource_length == cource_length)\
-                    .filter(RaceResult.cource_condition == cource_condition)\
-                        .filter(RaceResult.prize == prize)
-
-    return raceResults
-
-def dataPlot(session, hoseRaceResults, raceResults=None):
+def dataPlot(hoseRaceResults):
 
     """ グラフを描画する """
 
@@ -84,52 +56,55 @@ def dataPlot(session, hoseRaceResults, raceResults=None):
     matplotlib.rcParams['font.sans-serif'] = 'MigMix 1P'   
 
     # グラフプロット
-    x = [ hoseRaceResult.RaceResult.RPCI for hoseRaceResult in hoseRaceResults ]
-    y = [ hoseRaceResult.RaceResult.ave_1F for hoseRaceResult in hoseRaceResults ]
-    names = [ f' {hoseRaceResult.HoseRaceResult.passing_order} {hoseRaceResult.RaceResult.date} {hoseRaceResult.RaceResult.name} {hoseRaceResult.RaceResult.cource_condition} ' for hoseRaceResult in hoseRaceResults ]
 
-    """ 
-        着差ごとにplotは色分けする 
-        　・1着 -> 黄色
-        　・~0.4s 差 -> 緑
-        　・0.4s~1.0s 差 -> 青
-        　・1.0s〜 差 -> 灰色    
-    """
+    x = []
+    y = []
 
+    senkou_x = []
+    senkou_y = []
+    not_senkou_x = []
+    not_senkou_y = []
+
+    names = []
     colorTbl = []
-    for index, hoseRaceResult in enumerate(hoseRaceResults):
+    sizeTbl = []
 
-        # 出走頭数をカウントする
-        all_hose_count = session.query(HoseRaceResult).filter(HoseRaceResult.race_id == hoseRaceResult.HoseRaceResult.race_id)
-        pdb.set_trace()
-
+    for hoseRaceResult in hoseRaceResults:
+        # TODO hose_all_number)にはスペースの時があるので、エラーハンドリングする。
         try:
-            if hoseRaceResult.HoseRaceResult.rank == '1':
-                colorTbl.append('yellow')
-            elif float(hoseRaceResult.HoseRaceResult.time_diff) <= 0.4:
-                colorTbl.append('green')
-            elif float(hoseRaceResult.HoseRaceResult.time_diff) <= 1.0:
-                colorTbl.append('blue')
+            if int(hoseRaceResult.HoseRaceResult.passing_order.split('-')[0]) <= int(hoseRaceResult.RaceResult.hose_all_number.strip()) / 3:
+                senkou_x.append(hoseRaceResult.RaceHose.hose_num)
+                x.append(hoseRaceResult.RaceHose.hose_num)
+                senkou_y.append(hoseRaceResult.RaceResult.ave_1F)
+                y.append(hoseRaceResult.RaceResult.ave_1F) 
+                names.append(f'{hoseRaceResult.RaceResult.date} {hoseRaceResult.RaceResult.name} {hoseRaceResult.RaceResult.cource_condition} {hoseRaceResult.HoseRaceResult.passing_order}')
+                colorTbl.append("blue")
+                sizeTbl.append(20)
             else:
-                colorTbl.append('gray')
-        except ValueError as e:
-            print(f'race_id: {hoseRaceResult.HoseRaceResult.race_id} 競争除外レースのため結果から外します。')
-            # グラフから競争除外のレースのプロットを除外
-            del x[index]
-            del y[index]
-            del names[index]
-            continue            
+                not_senkou_x.append(hoseRaceResult.RaceHose.hose_num)
+                x.append(hoseRaceResult.RaceHose.hose_num)
+                not_senkou_y.append(hoseRaceResult.RaceResult.ave_1F)
+                y.append(hoseRaceResult.RaceResult.ave_1F) 
+                names.append(f'{hoseRaceResult.RaceResult.date} {hoseRaceResult.RaceResult.name} {hoseRaceResult.RaceResult.cource_condition} {hoseRaceResult.HoseRaceResult.passing_order}')
+                colorTbl.append("gray")
+                sizeTbl.append(10)
+        except ValueError:
+            print(hoseRaceResult.HoseRaceResult.passing_order)
+            print("通過順が提供されておりません。スキップします。")
 
-    # RaceResultsを受け取った場合はプロットする
-    if raceResults != None:
-        for raceResult in raceResults:
-            x.append(raceResult.RPCI)
-            y.append(raceResult.ave_1F)
-            names.append(f'{raceResult.date} {raceResult.name}')
-            colorTbl.append("red")
+    # 各馬の逃げレース数 / レース数を算出
+    hose_num_list = list(set(senkou_x + not_senkou_x))
+    for hose_num in hose_num_list:
+        hose_race_count = len(list(filter(lambda z:z == hose_num, senkou_x + not_senkou_x)))
+        senkou_race_count = len(list(filter(lambda z:z == hose_num, senkou_x)))
+        x.append(hose_num)
+        y.append(10)
+        colorTbl.append("white")
+        sizeTbl.append(20)
+        names.append(f'先行レース / 全レース: {senkou_race_count}/{hose_race_count}')
 
     fig,ax = plt.subplots()
-    sc = plt.scatter(x, y, c=colorTbl)
+    sc = plt.scatter(x, y, c=colorTbl, s=sizeTbl)
 
     # プロットにホバーした時、凡例を表示させる
     annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
@@ -148,7 +123,6 @@ def dataPlot(session, hoseRaceResults, raceResults=None):
         annot.get_bbox_patch().set_facecolor(colorTbl[ind["ind"][0]])
         annot.get_bbox_patch().set_alpha(0.4)
 
-
     def hover(event):
         vis = annot.get_visible()
         if event.inaxes == ax:
@@ -165,11 +139,15 @@ def dataPlot(session, hoseRaceResults, raceResults=None):
     fig.canvas.mpl_connect("motion_notify_event", hover)
 
     # グラフの体裁を整える
-    plt.xlabel('RPCI')
+    plt.xlabel('馬番')
     plt.ylabel('ave-1F')
-    plt.title(f'{hoseRaceResults[0].Hose.name} \n RPCI x ave-1F マトリクス')
-    plt.xlim(30, 70)
+    plt.title('先行度数')
+    plt.xlim(0, 19)
     plt.ylim(10, 14)
+    grit_gap = np.arange(0, 20, 1)
+    ax.set_xticks(grit_gap)
+    ax.grid(which = "major", axis = "x", color = "blue", alpha = 0.8,
+        linestyle = "--", linewidth = 1)
     plt.savefig('test_hoseRaceResult.png', dpi=300)
     plt.show()
 
