@@ -54,7 +54,7 @@ class ParseModuleSpider(scrapy.Spider):
         item['last_half_ave_3F'] = race_rap_float_array[-1] + race_rap_float_array[-2] + race_rap_float_array[-3]
         item['RPCI'] = 50 * item['first_half_ave_3F'] / item['last_half_ave_3F']
 
-        item['prize'] = response.css('.race_table_01 > tr')[1].css('td.txt_r').xpath('string()').getall()[-1]
+        item['prize'] = response.css('.race_table_01 > tr')[1].css('td.txt_r').xpath('string()').getall()[-1].replace(',', '')
 
         item['hose_all_number'] = len(response.css('table.race_table_01 > tr').getall()) - 1
 
@@ -107,7 +107,7 @@ class ParseModuleSpider(scrapy.Spider):
         item['RPCI'] = 50 * item['first_half_ave_3F'] / item['last_half_ave_3F']
 
         raceData02_array = response.css('div.RaceData02 > span').xpath('string()').getall()
-        item['prize'] = re.search(r':(\d+)', raceData02_array[-1]).group(1)
+        item['prize'] = re.search(r':(\d+)', raceData02_array[-1]).group(1).replace(',', '')
         item['hose_all_number'] = re.search(r'(\d+)', raceData02_array[-2]).group(1)
 
         return item
