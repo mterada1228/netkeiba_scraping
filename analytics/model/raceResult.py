@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy import create_engine, Column, Integer, String, Float, Date
 
 Base = declarative_base()
 
@@ -11,7 +11,7 @@ class RaceResult(Base):
     name = Column(String(200))
     cource_id = Column(String(3))
     cource_length = Column(String(5))
-    date = Column(String(11))
+    date = Column(Date)
     cource_type = Column(String(5))
     cource_condition = Column(String(10))
     entire_rap = Column(String(200))

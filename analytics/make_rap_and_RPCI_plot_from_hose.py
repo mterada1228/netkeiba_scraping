@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from model.raceResult import RaceResult
@@ -29,7 +29,7 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, '2016104672')
+    hoseRaceResults = getHoseRaceResult(session, '2014104623')
 
     # RaceResult　データの取得
     raceResults = getRaceResult(session, '巴賞')
@@ -46,7 +46,8 @@ def getHoseRaceResult(session, hose_id):
     hoseRaceResults = session.query(Hose, HoseRaceResult, RaceResult)\
         .filter(Hose.hose_id == hose_id)\
             .filter(Hose.hose_id == HoseRaceResult.hose_id)\
-                .filter(HoseRaceResult.race_id == RaceResult.id)
+                .filter(HoseRaceResult.race_id == RaceResult.id)\
+                    .order_by(desc(RaceResult.date))
 
     return hoseRaceResults
 
@@ -61,7 +62,9 @@ def getRaceResult(session,
 
     # レース名検索
     if raceName != None: 
-        raceResults = session.query(RaceResult).filter(RaceResult.name.like(f'%{raceName}%'))
+        raceResults = session.query(RaceResult)\
+            .filter(RaceResult.name.like(f'%{raceName}%'))\
+                .order_by(RaceResult.date)
 
     """
         以下条件でレースを検索
@@ -75,7 +78,8 @@ def getRaceResult(session,
             .filter(RaceResult.cource_id == cource_id)\
                 .filter(RaceResult.cource_length == cource_length)\
                     .filter(RaceResult.cource_condition == cource_condition)\
-                        .filter(RaceResult.prize == prize)
+                        .filter(RaceResult.prize == prize)\
+                            .order_by(desc(RaceResult.date))
     
     """
         以下条件でレースを検索
@@ -90,7 +94,8 @@ def getRaceResult(session,
                 .filter(RaceResult.cource_length == cource_length)\
                     .filter(RaceResult.cource_condition == cource_condition)\
                         .filter(RaceResult.prize >= prize_min)\
-                            .filter(RaceResult.prize <= prize_max)
+                            .filter(RaceResult.prize <= prize_max)\
+                                .order_by(desc(RaceResult.date))
 
     return raceResults
 
@@ -115,6 +120,8 @@ def dataPlot(hoseRaceResults, raceResults=None):
     """
 
     colorTbl = []
+    edgeColorTbl = []
+    count = 0
     for index, hoseRaceResult in enumerate(hoseRaceResults):
         try:
             if hoseRaceResult.HoseRaceResult.rank == '1':
@@ -125,6 +132,18 @@ def dataPlot(hoseRaceResults, raceResults=None):
                 colorTbl.append('blue')
             else:
                 colorTbl.append('gray')
+            
+            # 近5走までは散布図の縁を赤色
+            # 近10走までは散布図の縁をオレンジ色にする。
+            if count < 5:
+                edgeColorTbl.append('red')
+            elif count < 10:
+                edgeColorTbl.append('black')
+            else:
+                edgeColorTbl.append('white')
+            
+            count += 1
+
         except ValueError as e:
             print(f'race_id: {hoseRaceResult.HoseRaceResult.race_id} 競争除外レースのため結果から外します。')
             # グラフから競争除外のレースのプロットを除外
@@ -140,13 +159,14 @@ def dataPlot(hoseRaceResults, raceResults=None):
             y.append(raceResult.ave_1F)
             names.append(f'{raceResult.date} {raceResult.name} {raceResult.cource_condition}')
             colorTbl.append("red")
+            edgeColorTbl.append('white')
     
         # 中央値を求めてプロットする
         x_median = np.median([ raceResult.RPCI for raceResult in raceResults ])
         y_median = np.median([ raceResult.ave_1F for raceResult in raceResults ] )
 
     fig,ax = plt.subplots()
-    sc = plt.scatter(x, y, c=colorTbl)
+    sc = plt.scatter(x, y, c=colorTbl, linewidth=1, edgecolors=edgeColorTbl)
 
     # プロットにホバーした時、凡例を表示させる
     annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
