@@ -14,7 +14,7 @@ class RaceResultSpider(scrapy.Spider):
     name = 'race_result_from_sokuhou'
     allowed_domains = ['race.netkeiba.com']
 
-    start_urls = ['https://race.netkeiba.com/race/result.html?race_id=202009030811']
+    start_urls = ['https://race.netkeiba.com/race/result.html?race_id=202002020611']
 
     def parse(self, response):
        yield ParseModuleSpider.parse_race_result_from_sokuhou(self, response)

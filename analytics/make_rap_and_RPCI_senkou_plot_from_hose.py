@@ -30,7 +30,7 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, race_id='2016104505')
+    hoseRaceResults = getHoseRaceResult(session, race_id='202001020611')
 
     # グラフにプロットする
     dataPlot(hoseRaceResults)

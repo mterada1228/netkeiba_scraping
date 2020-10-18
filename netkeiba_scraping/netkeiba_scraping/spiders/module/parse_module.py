@@ -29,7 +29,9 @@ class ParseModuleSpider(scrapy.Spider):
         item['name'] = mainrace_data_dd.css('h1').xpath('string()').get() 
         item['cource_id'] = re.search(r'/race/(\d+)', response.url).group(1)[4:6]
         item['cource_length'] = re.search(r'\d+', mainrace_data_span_array[0]).group(0)
-        item['date'] = small_txt_p_array[0]
+
+        # TODO 'YYYY-M-DD'に変換して保存
+        item['date'] = small_txt_p_array[0].replace('年', '-').replace('月', '-').replace('日', '')
         item['cource_type'] = re.search(r'(\S+) :',mainrace_data_span_array[4]).group(1)
         item['cource_condition'] = re.search(r': (\S+)',mainrace_data_span_array[4]).group(1)
 
@@ -75,6 +77,8 @@ class ParseModuleSpider(scrapy.Spider):
 
         year = re.search(r'race_id=(\d+)', response.url).group(1)[0:4]
         month_day = re.search(r'(\S+)\(', response.css('dl#RaceList_DateList > dd.Active').xpath('string()').get()).group(1)
+        
+        # TODO 'YYYY-M-DD'に変換して保存
         item['date'] = year + '年' + month_day
 
         if re.search(r'[芝ダ障]', raceData01_array[2]).group(0) == '芝':

@@ -42,7 +42,7 @@ class SaveToMySQLPipeline:
                 `name` VARCHAR(200) NOT NULL, \
                 `cource_id` VARCHAR(3) NOT NULL, \
                 `cource_length` VARCHAR(5) NOT NULL, \
-                `date` VARCHAR(11) NOT NULL, \
+                `date` DATE NOT NULL, \
                 `cource_type` VARCHAR(5) NOT NULL, \
                 `cource_condition` VARCHAR(10) NOT NULL, \
                 `entire_rap` VARCHAR(200) NOT NULL, \

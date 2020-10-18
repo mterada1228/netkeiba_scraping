@@ -29,10 +29,10 @@ def main():
     session = Session()
 
     # HoseRaceResult データの取得
-    hoseRaceResults = getHoseRaceResult(session, '2014104623')
+    hoseRaceResults = getHoseRaceResult(session, '2017101792')
 
     # RaceResult　データの取得
-    raceResults = getRaceResult(session, '巴賞')
+    raceResults = getRaceResult(session, '秋華賞')
 
     # Session クローズ
     session.close()
@@ -205,13 +205,20 @@ def dataPlot(hoseRaceResults, raceResults=None):
     plt.xlabel('RPCI')
     plt.ylabel('ave-1F')
     plt.title(f'{hoseRaceResults[0].Hose.name} \n RPCI x ave-1F マトリクス')
-    plt.xlim(30, 70)
-    plt.ylim(10, 14)
+    plt.xlim(45, 60)
+    plt.ylim(11, 13)
     plt.savefig('test_hoseRaceResult.png', dpi=300)
-    if y_median:
-        plt.hlines(y_median, 30, 70, "red", linestyles='dashed')
-    if x_median:
-        plt.vlines(x_median, 10, 14, "red", linestyles='dashed') 
+
+    plt.hlines(y_median, 30, 70, "red", linestyles='dashed')
+    plt.vlines(x_median, 10, 14, "red", linestyles='dashed') 
+    # plt.hlines(12.26, 30, 70, "red", linestyles='dashed')
+    # plt.vlines(54.0, 10, 14, "red", linestyles='dashed') 
+
+    plt.hlines(11.80, 30, 70, "blue", linestyles='dashed') 
+    plt.hlines(12.00, 30, 70, "blue", linestyles='dashed') 
+    plt.vlines(47, 10, 14, "blue", linestyles='dashed') 
+    plt.vlines(50.20, 10, 14, "blue", linestyles='dashed') 
+
     plt.show()
 
 if __name__ == "__main__":
